@@ -1,0 +1,52 @@
+KNN Classification Report
+========================================
+
+Features CSV: C:\Users\eduar\Documents\GitHub\2026-PDS-Xingxiulong\data\Separate csv of features\features_all.csv
+Dominant color columns ignored: ['dom_color_1_ratio', 'dom_color_1_h', 'dom_color_1_s', 'dom_color_1_v', 'dom_color_2_ratio', 'dom_color_2_h', 'dom_color_2_s', 'dom_color_2_v', 'dom_color_3_ratio', 'dom_color_3_h', 'dom_color_3_s', 'dom_color_3_v', 'dom_color_4_ratio', 'dom_color_4_h', 'dom_color_4_s', 'dom_color_4_v', 'dom_color_5_ratio', 'dom_color_5_h', 'dom_color_5_s', 'dom_color_5_v']
+
+Features used:
+- total_pixels
+- area
+- lesion_percentage
+- perimeter
+- compactness
+- border_pixels
+- asymmetry_score
+- rotations_used
+- rgb_var_r
+- rgb_var_g
+- rgb_var_b
+- hsv_var_h
+- hsv_var_s
+- hsv_var_v
+- ita_mean
+- fst_predicted
+
+Model settings:
+k: 5
+Test size: 0.2
+Random state: 42
+
+Dataset:
+Total samples: 2100
+Train samples: 1680
+Test samples: 420
+Malignant samples: 1048
+Benign samples: 1052
+
+Performance:
+5-fold CV accuracy: 0.604 ± 0.025
+Test accuracy: 0.571
+ROC-AUC: 0.591
+Best k: 17
+Best k CV accuracy: 0.625
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Benign       0.57      0.57      0.57       210
+   Malignant       0.57      0.58      0.57       210
+
+    accuracy                           0.57       420
+   macro avg       0.57      0.57      0.57       420
+weighted avg       0.57      0.57      0.57       420

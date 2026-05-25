@@ -2,6 +2,34 @@ from pathlib import Path
 
 script = r'''"""
 Unified feature extraction script for the skin lesion project.
+
+This version removes the dominant color features completely.
+It still extracts:
+- border/shape features from masks
+- asymmetry features from masks
+- RGB/HSV variance features from images
+- ITA and predicted Fitzpatrick Skin Type from images
+
+Expected project structure:
+
+2026-PDS-Xingxiulong/
+│
+├── data/
+│   ├── imgs/
+│   ├── masks/
+│   │   └── masks/        # optional; masks can also be directly inside data/masks
+│   └── Separate csv of features/
+│
+└── src/
+    └── extract_all_features.py
+
+Run from the repository root or from src/ with:
+
+python extract_all_features.py
+
+The output CSV is saved to:
+
+data/Separate csv of features/features_all.csv
 """
 
 from pathlib import Path
@@ -18,7 +46,6 @@ from skimage.transform import rotate
 from skimage.color import rgb2hsv, rgb2lab
 
 from scipy.stats import circvar
-from sklearn.cluster import KMeans
 
 
 # ============================================================
@@ -333,7 +360,7 @@ def feature_asymmetry(mask, n_rotations=8):
 
 
 # ============================================================
-# 6. Color features
+# 6. Color features, without dominant colors
 # ============================================================
 
 def ita_to_fst(ita):
@@ -464,51 +491,14 @@ def calculate_hsv_variances(means):
     )
 
 
-def color_dominance(hsv_flat, clusters=5, pixel_step=4):
+def extract_color_features(image, n_segments=50):
     """
-    Finds dominant colors using KMeans in HSV space.
-    """
+    Extracts color variation, ITA, and predicted FST.
 
-    sample = hsv_flat[::pixel_step]
-
-    if len(sample) < clusters:
-        clusters = len(sample)
-
-    if clusters <= 0:
-        return []
-
-    kmeans = KMeans(
-        n_clusters=clusters,
-        n_init=10,
-        random_state=0,
-    )
-
-    kmeans.fit(sample)
-
-    _, counts = np.unique(kmeans.labels_, return_counts=True)
-    ratios = counts / len(kmeans.labels_)
-
-    dominant = sorted(
-        zip(ratios, kmeans.cluster_centers_),
-        key=lambda x: x[0],
-        reverse=True,
-    )
-
-    return dominant
-
-
-def extract_color_features(
-    image,
-    n_segments=50,
-    n_dominant_colors=5,
-    pixel_step=4,
-):
-    """
-    Extracts color variation, dominant color, ITA, and predicted FST.
+    Dominant color features were intentionally removed.
     """
 
     hsv = rgb2hsv(image)
-    hsv_flat = hsv.reshape(-1, 3)
 
     segments = slic(
         image,
@@ -522,12 +512,6 @@ def extract_color_features(
     rgb_var = calculate_variances(rgb_means)
     hsv_var = calculate_hsv_variances(hsv_means)
 
-    dominant_colors = color_dominance(
-        hsv_flat,
-        clusters=n_dominant_colors,
-        pixel_step=pixel_step,
-    )
-
     ita_mean, fst_predicted = predict_fst(image, segments)
 
     features = {
@@ -540,21 +524,6 @@ def extract_color_features(
         "ita_mean": round(ita_mean, 4),
         "fst_predicted": fst_predicted,
     }
-
-    for i in range(n_dominant_colors):
-        if i < len(dominant_colors):
-            ratio, color = dominant_colors[i]
-
-            features[f"dom_color_{i+1}_ratio"] = ratio
-            features[f"dom_color_{i+1}_h"] = color[0]
-            features[f"dom_color_{i+1}_s"] = color[1]
-            features[f"dom_color_{i+1}_v"] = color[2]
-
-        else:
-            features[f"dom_color_{i+1}_ratio"] = np.nan
-            features[f"dom_color_{i+1}_h"] = np.nan
-            features[f"dom_color_{i+1}_s"] = np.nan
-            features[f"dom_color_{i+1}_v"] = np.nan
 
     return features
 
@@ -570,8 +539,6 @@ def process_all_images(
     max_size=512,
     n_rotations=8,
     n_segments=50,
-    pixel_step=4,
-    n_dominant_colors=5,
 ):
     """
     Processes all images and saves one CSV with all extracted features.
@@ -615,8 +582,6 @@ def process_all_images(
             color_features = extract_color_features(
                 image,
                 n_segments=n_segments,
-                n_dominant_colors=n_dominant_colors,
-                pixel_step=pixel_step,
             )
 
             row = {
@@ -652,7 +617,7 @@ def process_all_images(
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Extract border, asymmetry, color, ITA, and FST features from skin lesion images."
+        description="Extract border, asymmetry, color variance, ITA, and FST features from skin lesion images."
     )
 
     parser.add_argument(
@@ -679,21 +644,7 @@ def parse_args():
         "--segments",
         type=int,
         default=50,
-        help="Number of SLIC segments used for color features.",
-    )
-
-    parser.add_argument(
-        "--pixel-step",
-        type=int,
-        default=4,
-        help="Pixel step used when sampling pixels for KMeans dominant colors.",
-    )
-
-    parser.add_argument(
-        "--dominant-colors",
-        type=int,
-        default=5,
-        help="Number of dominant color clusters to save.",
+        help="Number of SLIC segments used for color variance and FST features.",
     )
 
     return parser.parse_args()
@@ -722,8 +673,6 @@ def main():
         max_size=args.max_size,
         n_rotations=args.rotations,
         n_segments=args.segments,
-        pixel_step=args.pixel_step,
-        n_dominant_colors=args.dominant_colors,
     )
 
     print("\nPreview:")
@@ -734,7 +683,7 @@ if __name__ == "__main__":
     main()
 '''
 
-path = Path("/mnt/data/extract_all_features.py")
+path = Path("/mnt/data/extract_all_features_no_dominant_colors.py")
 path.write_text(script, encoding="utf-8")
 
 print(f"Created: {path}")
