@@ -1,0 +1,52 @@
+KNN Classification Report — border_asymmetry_color_no_ita_fst
+============================================================
+
+Description: Border/asymmetry plus color variance, excluding ITA and Fitzpatrick
+Features CSV: C:\Users\eduar\Documents\GitHub\2026-PDS-Xingxiulong\data\Separate csv of features\features_all.csv
+Test size: 0.2
+Random state: 42
+Best k: 19
+
+Diagnostic mapping:
+1 = malignant: BCC, SCC, MEL
+0 = benign: ACK, NEV, SEK
+
+Features used:
+- total_pixels
+- area
+- lesion_percentage
+- perimeter
+- compactness
+- border_pixels
+- asymmetry_score
+- rgb_var_r
+- rgb_var_g
+- rgb_var_b
+- hsv_var_h
+- hsv_var_s
+- hsv_var_v
+
+Dataset:
+Total samples after cleaning: 2100
+Train samples: 1680
+Test samples: 420
+Malignant samples: 1048
+Benign samples: 1052
+
+Best cross-validation result:
+CV accuracy: 0.623 ± 0.032
+CV ROC-AUC: 0.666 ± 0.035
+
+Test performance:
+Accuracy: 0.619
+ROC-AUC: 0.651
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Benign       0.62      0.62      0.62       210
+   Malignant       0.62      0.61      0.62       210
+
+    accuracy                           0.62       420
+   macro avg       0.62      0.62      0.62       420
+weighted avg       0.62      0.62      0.62       420

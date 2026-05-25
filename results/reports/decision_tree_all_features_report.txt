@@ -1,0 +1,78 @@
+Decision Tree Classification Report — all_features
+======================================================================
+
+Description: Border/asymmetry plus color variance, ITA, and predicted Fitzpatrick
+Features CSV: C:\Users\eduar\Documents\GitHub\2026-PDS-Xingxiulong\data\Separate csv of features\features_all.csv
+Test size: 0.2
+Random state: 42
+Class weight: balanced
+
+Diagnostic mapping:
+1 = malignant: BCC, SCC, MEL
+0 = benign: ACK, NEV, SEK
+
+Best hyperparameters:
+criterion: entropy
+max_depth: 10
+min_samples_leaf: 20
+
+Features used:
+- total_pixels
+- area
+- lesion_percentage
+- perimeter
+- compactness
+- border_pixels
+- asymmetry_score
+- rgb_var_r
+- rgb_var_g
+- rgb_var_b
+- hsv_var_h
+- hsv_var_s
+- hsv_var_v
+- ita_mean
+- fst_predicted
+
+Dataset:
+Total samples after cleaning: 2100
+Train samples: 1680
+Test samples: 420
+Malignant samples: 1048
+Benign samples: 1052
+
+Best cross-validation result:
+CV ROC-AUC: 0.682 ± 0.035
+CV Accuracy: 0.639 ± 0.029
+
+Test performance:
+Accuracy: 0.629
+ROC-AUC: 0.651
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Benign       0.65      0.57      0.60       210
+   Malignant       0.61      0.69      0.65       210
+
+    accuracy                           0.63       420
+   macro avg       0.63      0.63      0.63       420
+weighted avg       0.63      0.63      0.63       420
+
+
+Feature importances:
+          feature  importance
+lesion_percentage    0.218861
+        hsv_var_h    0.205557
+  asymmetry_score    0.097178
+        rgb_var_g    0.076642
+         ita_mean    0.065272
+        rgb_var_r    0.057033
+     total_pixels    0.056787
+      compactness    0.055079
+        perimeter    0.038481
+        rgb_var_b    0.037442
+        hsv_var_s    0.029897
+        hsv_var_v    0.028390
+    border_pixels    0.020794
+             area    0.012587
+    fst_predicted    0.000000

@@ -1,0 +1,62 @@
+Decision Tree Classification Report — border_asymmetry
+======================================================================
+
+Description: Only asymmetry and border/shape features
+Features CSV: C:\Users\eduar\Documents\GitHub\2026-PDS-Xingxiulong\data\Separate csv of features\features_all.csv
+Test size: 0.2
+Random state: 42
+Class weight: balanced
+
+Diagnostic mapping:
+1 = malignant: BCC, SCC, MEL
+0 = benign: ACK, NEV, SEK
+
+Best hyperparameters:
+criterion: entropy
+max_depth: 5
+min_samples_leaf: 2
+
+Features used:
+- total_pixels
+- area
+- lesion_percentage
+- perimeter
+- compactness
+- border_pixels
+- asymmetry_score
+
+Dataset:
+Total samples after cleaning: 2100
+Train samples: 1680
+Test samples: 420
+Malignant samples: 1048
+Benign samples: 1052
+
+Best cross-validation result:
+CV ROC-AUC: 0.658 ± 0.013
+CV Accuracy: 0.618 ± 0.010
+
+Test performance:
+Accuracy: 0.598
+ROC-AUC: 0.627
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Benign       0.59      0.61      0.60       210
+   Malignant       0.60      0.58      0.59       210
+
+    accuracy                           0.60       420
+   macro avg       0.60      0.60      0.60       420
+weighted avg       0.60      0.60      0.60       420
+
+
+Feature importances:
+          feature  importance
+lesion_percentage    0.444420
+  asymmetry_score    0.183819
+     total_pixels    0.102448
+      compactness    0.095824
+             area    0.093368
+        perimeter    0.059326
+    border_pixels    0.020794

@@ -1,0 +1,72 @@
+Logistic Regression Classification Report — border_asymmetry_color_no_ita_fst
+======================================================================
+
+Description: Border/asymmetry plus color variance, excluding ITA and Fitzpatrick
+Features CSV: C:\Users\eduar\Documents\GitHub\2026-PDS-Xingxiulong\data\Separate csv of features\features_all.csv
+Test size: 0.2
+Random state: 42
+Best C: 1.0
+Penalty: L2
+Solver: liblinear
+Class weight: balanced
+
+Diagnostic mapping:
+1 = malignant: BCC, SCC, MEL
+0 = benign: ACK, NEV, SEK
+
+Features used:
+- total_pixels
+- area
+- lesion_percentage
+- perimeter
+- compactness
+- border_pixels
+- asymmetry_score
+- rgb_var_r
+- rgb_var_g
+- rgb_var_b
+- hsv_var_h
+- hsv_var_s
+- hsv_var_v
+
+Dataset:
+Total samples after cleaning: 2100
+Train samples: 1680
+Test samples: 420
+Malignant samples: 1048
+Benign samples: 1052
+
+Best cross-validation result:
+CV accuracy: 0.639 ± 0.028
+CV ROC-AUC: 0.704 ± 0.023
+
+Test performance:
+Accuracy: 0.629
+ROC-AUC: 0.661
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Benign       0.61      0.71      0.66       210
+   Malignant       0.65      0.55      0.60       210
+
+    accuracy                           0.63       420
+   macro avg       0.63      0.63      0.63       420
+weighted avg       0.63      0.63      0.63       420
+
+
+Standardized coefficients, sorted by absolute value:
+          feature  coefficient  abs_coefficient
+        rgb_var_g     1.364906         1.364906
+        rgb_var_b    -0.942086         0.942086
+    border_pixels     0.818359         0.818359
+        hsv_var_v    -0.451299         0.451299
+     total_pixels    -0.344569         0.344569
+        hsv_var_s     0.324043         0.324043
+             area    -0.280604         0.280604
+        rgb_var_r    -0.278132         0.278132
+        hsv_var_h     0.270822         0.270822
+  asymmetry_score    -0.266320         0.266320
+lesion_percentage     0.241798         0.241798
+        perimeter    -0.220933         0.220933
+      compactness    -0.056824         0.056824

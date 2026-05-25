@@ -1,0 +1,60 @@
+Logistic Regression Classification Report — border_asymmetry
+======================================================================
+
+Description: Only asymmetry and border/shape features
+Features CSV: C:\Users\eduar\Documents\GitHub\2026-PDS-Xingxiulong\data\Separate csv of features\features_all.csv
+Test size: 0.2
+Random state: 42
+Best C: 100.0
+Penalty: L2
+Solver: liblinear
+Class weight: balanced
+
+Diagnostic mapping:
+1 = malignant: BCC, SCC, MEL
+0 = benign: ACK, NEV, SEK
+
+Features used:
+- total_pixels
+- area
+- lesion_percentage
+- perimeter
+- compactness
+- border_pixels
+- asymmetry_score
+
+Dataset:
+Total samples after cleaning: 2100
+Train samples: 1680
+Test samples: 420
+Malignant samples: 1048
+Benign samples: 1052
+
+Best cross-validation result:
+CV accuracy: 0.633 ± 0.023
+CV ROC-AUC: 0.666 ± 0.024
+
+Test performance:
+Accuracy: 0.595
+ROC-AUC: 0.624
+
+Classification report:
+              precision    recall  f1-score   support
+
+      Benign       0.59      0.63      0.61       210
+   Malignant       0.60      0.56      0.58       210
+
+    accuracy                           0.60       420
+   macro avg       0.60      0.60      0.59       420
+weighted avg       0.60      0.60      0.59       420
+
+
+Standardized coefficients, sorted by absolute value:
+          feature  coefficient  abs_coefficient
+    border_pixels     1.315253         1.315253
+        perimeter    -0.677133         0.677133
+             area    -0.361476         0.361476
+lesion_percentage     0.349715         0.349715
+     total_pixels    -0.314930         0.314930
+  asymmetry_score    -0.267799         0.267799
+      compactness    -0.063660         0.063660
