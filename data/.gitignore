@@ -1,6 +1,6 @@
 imgs/*
 masks/*
+imgs_clean/*
 metadata.csv
-Data_exploration_edvinas.ipynb
-imgs_cleaning/*
-pen_masks/*
+features.csv
+annotations_combined.csv
