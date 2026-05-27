@@ -19,37 +19,37 @@ weighted avg       0.60      0.60      0.60       420
 
 --------------------------------------------------
 
-Model B: + Color/ITA
-  Features: ['asymmetry_score', 'compactness', 'lesion_percentage', 'rgb_var_r', 'rgb_var_g', 'rgb_var_b', 'hsv_var_h', 'hsv_var_s', 'hsv_var_v', 'ita_mean']
-  Best k:   20
-  Acc:      0.574
-  AUC:      0.625
+Model B: + Color variance
+  Features: ['asymmetry_score', 'compactness', 'lesion_percentage', 'rgb_var_r', 'rgb_var_g', 'rgb_var_b', 'hsv_var_h', 'hsv_var_s', 'hsv_var_v']
+  Best k:   19
+  Acc:      0.610
+  AUC:      0.638
 
               precision    recall  f1-score   support
 
-      Benign       0.56      0.69      0.62       210
-   Malignant       0.60      0.46      0.52       210
+      Benign       0.60      0.67      0.63       210
+   Malignant       0.62      0.55      0.59       210
 
-    accuracy                           0.57       420
-   macro avg       0.58      0.57      0.57       420
-weighted avg       0.58      0.57      0.57       420
+    accuracy                           0.61       420
+   macro avg       0.61      0.61      0.61       420
+weighted avg       0.61      0.61      0.61       420
 
 --------------------------------------------------
 
-Model C: + FST
-  Features: ['asymmetry_score', 'compactness', 'lesion_percentage', 'rgb_var_r', 'rgb_var_g', 'rgb_var_b', 'hsv_var_h', 'hsv_var_s', 'hsv_var_v', 'ita_mean', 'fst_predicted']
-  Best k:   15
-  Acc:      0.564
-  AUC:      0.604
+Model C: + ITA (skin tone)
+  Features: ['asymmetry_score', 'compactness', 'lesion_percentage', 'rgb_var_r', 'rgb_var_g', 'rgb_var_b', 'hsv_var_h', 'hsv_var_s', 'hsv_var_v', 'ita_mean']
+  Best k:   20
+  Acc:      0.605
+  AUC:      0.639
 
               precision    recall  f1-score   support
 
-      Benign       0.56      0.60      0.58       210
-   Malignant       0.57      0.52      0.55       210
+      Benign       0.59      0.71      0.64       210
+   Malignant       0.63      0.50      0.56       210
 
-    accuracy                           0.56       420
-   macro avg       0.56      0.56      0.56       420
-weighted avg       0.56      0.56      0.56       420
+    accuracy                           0.60       420
+   macro avg       0.61      0.60      0.60       420
+weighted avg       0.61      0.60      0.60       420
 
 --------------------------------------------------
 
