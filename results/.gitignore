@@ -1,3 +1,9 @@
 figures/*
 predictions/*
 reports/*
+
+models/*
+!models/model_decision_tree.py
+!models/model_KNN.py
+!models/model_logistic_regression.py
+
