@@ -1,6 +1,7 @@
 imgs/*
 masks/*
 imgs_clean/*
+imgs_hairless/*
 metadata.csv
 features.csv
 annotations_combined.csv

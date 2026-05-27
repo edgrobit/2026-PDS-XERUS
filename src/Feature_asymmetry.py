@@ -21,11 +21,11 @@ import numpy as np
 import pandas as pd
 from math import floor, ceil
 from skimage.transform import rotate
-from utils import find_project_paths, load_mask, VALID_EXTENSIONS
+from utils import (find_project_paths, load_mask, VALID_EXTENSIONS,
+                   load_masks_blocklist)
 
 PATHS    = find_project_paths()
 MASK_DIR = PATHS["mask_dir"]
-
 N_ROTATIONS = 8
 
 
@@ -51,7 +51,7 @@ def trim_to_bounding_box(mask):
 
 def asymmetry_score(mask):
     """
-    XOR mirrored halves of the mask — pixels that don't overlap when folded
+    XOR mirrored halves — pixels that don't overlap when folded
     indicate asymmetry. Normalised to 0-1.
     """
     row_mid, col_mid = midpoint(mask)
@@ -97,6 +97,9 @@ def feature_asymmetry(mask, n=N_ROTATIONS):
 
 
 def run():
+    blocklist = load_masks_blocklist()
+    print(f"  Blocklist loaded: {len(blocklist)} masks to skip")
+
     mask_files = [
         f for f in sorted(MASK_DIR.iterdir())
         if f.suffix.lower() in VALID_EXTENSIONS and "_mask" in f.name
@@ -105,6 +108,10 @@ def run():
 
     rows = []
     for mask_path in mask_files:
+        stem = mask_path.name.replace("_mask.png", "").replace("_mask", "")
+        if stem in blocklist:
+            continue
+
         try:
             mask_bin = load_mask(mask_path)
             if mask_bin.sum() < 50:

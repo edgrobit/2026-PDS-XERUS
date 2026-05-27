@@ -161,6 +161,11 @@ def run(img_dir=IMG_DIR, mask_dir=MASK_DIR,
 
     print(f"Images with pen marks: {len(pen_ids)}")
 
+    # Load blocklist — masks with no corresponding image
+    from utils import load_masks_blocklist
+    blocklist = load_masks_blocklist()
+    print(f"Blocklist loaded:      {len(blocklist)} images to skip")
+
     # Get all images
     valid_ext   = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
     all_images  = [f for f in sorted(Path(img_dir).iterdir())
@@ -171,6 +176,8 @@ def run(img_dir=IMG_DIR, mask_dir=MASK_DIR,
     processed = skipped = copied = 0
 
     for img_path in all_images:
+        if img_path.stem in blocklist:
+            continue
         stem     = img_path.stem
         out_path = output_dir / img_path.name
 

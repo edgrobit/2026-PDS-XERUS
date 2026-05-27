@@ -24,7 +24,7 @@ from skimage.segmentation import slic
 from skimage.color import rgb2hsv, rgb2lab
 from scipy.stats import circvar
 from utils import (find_project_paths, load_image, load_mask,
-                   find_mask_for_image, VALID_EXTENSIONS)
+                   find_mask_for_image, VALID_EXTENSIONS, load_masks_blocklist)
 
 PATHS          = find_project_paths()
 IMG_DIR        = PATHS["img_dir"]
@@ -130,6 +130,9 @@ def extract_color_features(image):
 
 
 def run():
+    blocklist = load_masks_blocklist()
+    print(f"  Blocklist loaded: {len(blocklist)} images to skip")
+
     # Use imgs_clean/ if it exists and has files, otherwise fall back to imgs/
     if IMGS_CLEAN_DIR.exists() and any(IMGS_CLEAN_DIR.iterdir()):
         source_dir = IMGS_CLEAN_DIR
@@ -146,6 +149,9 @@ def run():
 
     rows = []
     for image_path in image_files:
+        if image_path.stem in blocklist:
+            continue
+
         mask_path = find_mask_for_image(image_path, MASK_DIR)
         if mask_path is None:
             mask_path = find_mask_for_image(IMG_DIR / image_path.name, MASK_DIR)

@@ -50,19 +50,22 @@ RANDOM_STATE = 42
 
 FEATURE_SETS = {
     "A_Baseline": [
+        # Shape only — no color information
         "asymmetry_score", "compactness", "lesion_percentage",
     ],
     "B_PlusColor": [
+        # Shape + color heterogeneity (how varied the color is across the lesion)
+        "asymmetry_score", "compactness", "lesion_percentage",
+        "rgb_var_r", "rgb_var_g", "rgb_var_b",
+        "hsv_var_h", "hsv_var_s", "hsv_var_v",
+    ],
+    "C_PlusITA": [
+        # Shape + color heterogeneity + ITA (continuous skin tone)
+        # This phase directly addresses the research question
         "asymmetry_score", "compactness", "lesion_percentage",
         "rgb_var_r", "rgb_var_g", "rgb_var_b",
         "hsv_var_h", "hsv_var_s", "hsv_var_v",
         "ita_mean",
-    ],
-    "C_PlusFST": [
-        "asymmetry_score", "compactness", "lesion_percentage",
-        "rgb_var_r", "rgb_var_g", "rgb_var_b",
-        "hsv_var_h", "hsv_var_s", "hsv_var_v",
-        "ita_mean", "fst_predicted",
     ],
 }
 
@@ -159,8 +162,8 @@ def run(features_csv=FEATURES_CSV):
     # ── Comparison summary ────────────────────────────────────────────────────
     names    = list(results.keys())
     labels   = {"A_Baseline":  "A: Shape only",
-                 "B_PlusColor": "B: + Color/ITA",
-                 "C_PlusFST":   "C: + FST"}
+                 "B_PlusColor": "B: + Color variance",
+                 "C_PlusITA":   "C: + ITA (skin tone)"}
     colors   = ["#95a5a6", "#4C72B0", "#DD8452"]
     base_acc = results["A_Baseline"]["accuracy"]
     base_auc = results["A_Baseline"]["roc_auc"]
@@ -189,7 +192,7 @@ def run(features_csv=FEATURES_CSV):
     plt.close()
 
     # Coefficients for full model (C_PlusFST) — most interpretable figure
-    coef_df = results["C_PlusFST"]["coefs"]
+    coef_df = results["C_PlusITA"]["coefs"]
     colors_coef = ["#DD8452" if v > 0 else "#4C72B0"
                    for v in coef_df["coefficient"]]
     plt.figure(figsize=(8, 5))

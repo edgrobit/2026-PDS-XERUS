@@ -41,19 +41,22 @@ RANDOM_STATE = 42
 # Three feature sets — progressive addition to isolate skin color contribution
 FEATURE_SETS = {
     "A_Baseline": [
+        # Shape only — no color information
         "asymmetry_score", "compactness", "lesion_percentage",
     ],
     "B_PlusColor": [
+        # Shape + color heterogeneity (how varied the color is across the lesion)
+        "asymmetry_score", "compactness", "lesion_percentage",
+        "rgb_var_r", "rgb_var_g", "rgb_var_b",
+        "hsv_var_h", "hsv_var_s", "hsv_var_v",
+    ],
+    "C_PlusITA": [
+        # Shape + color heterogeneity + ITA (continuous skin tone)
+        # This phase directly addresses the research question
         "asymmetry_score", "compactness", "lesion_percentage",
         "rgb_var_r", "rgb_var_g", "rgb_var_b",
         "hsv_var_h", "hsv_var_s", "hsv_var_v",
         "ita_mean",
-    ],
-    "C_PlusFST": [
-        "asymmetry_score", "compactness", "lesion_percentage",
-        "rgb_var_r", "rgb_var_g", "rgb_var_b",
-        "hsv_var_h", "hsv_var_s", "hsv_var_v",
-        "ita_mean", "fst_predicted",
     ],
 }
 
@@ -150,8 +153,8 @@ def run(features_csv=FEATURES_CSV):
     print("="*50)
     labels = {
         "A_Baseline":  "A: Shape only",
-        "B_PlusColor": "B: + Color/ITA",
-        "C_PlusFST":   "C: + FST",
+        "B_PlusColor": "B: + Color variance",
+        "C_PlusITA":   "C: + ITA (skin tone)",
     }
     base_acc = results["A_Baseline"]["accuracy"]
     base_auc = results["A_Baseline"]["roc_auc"]

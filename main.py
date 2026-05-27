@@ -3,15 +3,17 @@ main.py — Full pipeline orchestration
 ======================================
 Runs the complete project pipeline in order:
 
-    0. Pen mark removal    → data/imgs_clean/
-    1. Feature extraction  → each script appends to data/features.csv
-    2. Model training      → results/
+    0a. Hair removal       → data/imgs_hairless/
+    0b. Pen mark removal   → data/imgs_clean/  (reads from imgs_hairless/)
+    1.  Feature extraction → builds data/features.csv
+    2.  Model training     → results/
 
 Usage:
-    python main.py                 # full pipeline
-    python main.py --models-only   # skip to model training (features.csv must exist)
-    python main.py --features-only # extract features only, skip models
-    python main.py --skip-pen      # skip pen removal (use existing data/imgs_clean/)
+    python main.py                  # full pipeline
+    python main.py --models-only    # skip to model training (features.csv must exist)
+    python main.py --features-only  # extract features only, skip models
+    python main.py --skip-hair      # skip hair removal, use existing data/imgs_hairless/
+    python main.py --skip-pen       # skip both hair and pen removal, use existing data/imgs_clean/
 """
 
 import sys
@@ -21,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 # ── Feature scripts ───────────────────────────────────────────────────────────
+from src.Feature_hair_removal         import run_dataset_pipeline as run_hair_removal
 from src.Feature_penmark_mask import run as run_pen_removal
 from src.Feature_asymmetry    import run as run_asymmetry
 from src.Feature_borders      import run as run_borders
@@ -32,21 +35,52 @@ from results.models.model_decision_tree       import run as run_dt
 from results.models.model_logistic_regression import run as run_lr
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-DATA_DIR     = Path("data")
-METADATA_CSV = DATA_DIR / "metadata.csv"
-OUTPUT_CSV   = DATA_DIR / "features.csv"   # single master feature file
+DATA_DIR        = Path("data")
+IMGS_DIR        = DATA_DIR / "imgs"
+IMGS_HAIRLESS   = DATA_DIR / "imgs_hairless"
+IMGS_CLEAN      = DATA_DIR / "imgs_clean"
+MASKS_DIR       = DATA_DIR / "masks"
+ANNOTATIONS_CSV = DATA_DIR / "annotations_combined.csv"
+METADATA_CSV    = DATA_DIR / "metadata.csv"
+OUTPUT_CSV      = DATA_DIR / "features.csv"
 
 MALIGNANT = {"BCC", "SCC", "MEL"}
 
 
-# ── Step 0: Pen mark removal ──────────────────────────────────────────────────
+# ── Step 0a: Hair removal ─────────────────────────────────────────────────────
+
+def remove_hair():
+    print("\n" + "="*60)
+    print("STEP 0a — HAIR REMOVAL")
+    print("="*60)
+    print(f"Removing hair: {IMGS_DIR} → {IMGS_HAIRLESS}")
+    run_hair_removal(
+        input_dir  = str(IMGS_DIR),
+        output_dir = str(IMGS_HAIRLESS),
+    )
+
+
+# ── Step 0b: Pen mark removal ─────────────────────────────────────────────────
 
 def remove_pen_marks():
     print("\n" + "="*60)
-    print("STEP 0 — PEN MARK REMOVAL")
+    print("STEP 0b — PEN MARK REMOVAL")
     print("="*60)
-    print("Inpainting pen marks → data/imgs_clean/")
-    run_pen_removal()
+
+    # Read from imgs_hairless/ if it exists, otherwise fall back to imgs/
+    if IMGS_HAIRLESS.exists() and any(IMGS_HAIRLESS.iterdir()):
+        src = IMGS_HAIRLESS
+    else:
+        print("  WARNING: imgs_hairless/ not found, reading from imgs/ instead")
+        src = IMGS_DIR
+
+    print(f"Removing pen marks: {src} → {IMGS_CLEAN}")
+    run_pen_removal(
+        img_dir         = src,
+        mask_dir        = MASKS_DIR,
+        annotations_csv = ANNOTATIONS_CSV,
+        output_dir      = IMGS_CLEAN,
+    )
 
 
 # ── Step 1: Feature extraction and build master CSV ───────────────────────────
@@ -56,32 +90,30 @@ def extract_features():
     print("STEP 1 — FEATURE EXTRACTION")
     print("="*60)
 
-    # --- 1a. Borders and shape (starts the master CSV) ---
     print("\n[1/3] Borders and shape...")
-    bord = run_borders()          # returns a dataframe
+    bord = run_borders()
     bord["stem"] = bord["image_name"].str.replace(".png", "", regex=False)
 
-    # --- 1b. Asymmetry (join on stem) ---
     print("\n[2/3] Asymmetry...")
     asym = run_asymmetry()
     asym["stem"] = asym["image_name"].str.replace(".png", "", regex=False)
-    df = bord.merge(
-        asym[["stem", "asymmetry_score", "rotations_used"]],
-        on="stem", how="left"
-    )
 
-    # --- 1c. Skin color (join on stem) ---
     print("\n[3/3] Skin color (ITA, FST, RGB/HSV variance)...")
     color = run_skincolour()
     color["stem"] = color["image_name"].str.replace(".png", "", regex=False)
-    df = df.merge(
+
+    # Merge all features together on stem
+    df = bord.merge(
+        asym[["stem", "asymmetry_score", "rotations_used"]],
+        on="stem", how="left"
+    ).merge(
         color[["stem", "rgb_var_r", "rgb_var_g", "rgb_var_b",
                "hsv_var_h", "hsv_var_s", "hsv_var_v",
                "ita_mean", "fst_predicted"]],
         on="stem", how="left"
     )
 
-    # --- Merge metadata for labels ---
+    # Merge metadata for diagnostic labels
     meta = pd.read_csv(METADATA_CSV)
     meta["stem"] = meta["img_id"].str.replace(".png", "", regex=False)
     df = df.merge(
@@ -89,7 +121,6 @@ def extract_features():
         on="stem", how="left"
     )
 
-    # --- Final tidy up ---
     df["img_id"] = df["stem"]
     df["label"]  = df["diagnostic"].apply(
         lambda x: 1 if x in MALIGNANT else 0
@@ -97,7 +128,6 @@ def extract_features():
     df = df.drop(columns=["stem"]).sort_values("img_id").reset_index(drop=True)
 
     df.to_csv(OUTPUT_CSV, index=False)
-
     print(f"\nMaster CSV saved → {OUTPUT_CSV}")
     print(f"  Rows:      {len(df)}")
     print(f"  Columns:   {df.columns.tolist()}")
@@ -117,7 +147,6 @@ def train_models():
     dt_results  = run_dt(features_csv=OUTPUT_CSV)
     lr_results  = run_lr(features_csv=OUTPUT_CSV)
 
-    # Summary comparison across all models
     print("\n" + "="*60)
     print("FINAL MODEL COMPARISON")
     print("="*60)
@@ -135,6 +164,7 @@ def train_models():
     print(f"  {'Logistic Regression (best)':<30} "
           f"{best_lr['accuracy']:>10.3f} {best_lr['roc_auc']:>10.3f}")
 
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def main():
@@ -143,15 +173,21 @@ def main():
                         help="Skip to model training — features.csv must exist")
     parser.add_argument("--features-only", action="store_true",
                         help="Extract features only, skip models")
+    parser.add_argument("--skip-hair",     action="store_true",
+                        help="Skip hair removal — use existing data/imgs_hairless/")
     parser.add_argument("--skip-pen",      action="store_true",
-                        help="Skip pen removal — use existing data/imgs_clean/")
+                        help="Skip hair + pen removal — use existing data/imgs_clean/")
     args = parser.parse_args()
 
     if not args.models_only:
         if not args.skip_pen:
+            if not args.skip_hair:
+                remove_hair()
+            else:
+                print("\nSkipping hair removal (--skip-hair)")
             remove_pen_marks()
         else:
-            print("\nSkipping pen removal (--skip-pen)")
+            print("\nSkipping hair and pen removal (--skip-pen)")
 
         extract_features()
 

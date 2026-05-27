@@ -3,12 +3,14 @@ utils.py — Shared utilities for all feature extraction scripts
 ==============================================================
 Import from here instead of redefining in each feature file:
 
-    from utils import find_project_paths, load_image, load_mask, find_mask_for_image
-    from utils import preprocess_mask, get_main_lesion
+    from utils import find_project_paths, load_image, load_mask
+    from utils import find_mask_for_image, preprocess_mask, get_main_lesion
+    from utils import load_masks_blocklist
 """
 
 from pathlib import Path
 import numpy as np
+import pandas as pd
 from skimage.io import imread
 from skimage import img_as_float, transform, morphology, measure
 
@@ -46,6 +48,19 @@ def find_project_paths():
         "Could not find project folders. Make sure the repo contains "
         "'data/imgs' and either 'data/masks' or 'data/masks/masks'."
     )
+
+
+def load_masks_blocklist(csv_path="data/masks_without_images.csv"):
+    """
+    Load the list of mask stems that have no corresponding image.
+    Returns a set of stems to skip during feature extraction.
+    Returns an empty set if the file does not exist.
+    """
+    path = Path(csv_path)
+    if not path.exists():
+        return set()
+    df = pd.read_csv(path)
+    return set(df.iloc[:, 0].str.replace(".png", "", regex=False).tolist())
 
 
 def load_image(path, max_size=512):
