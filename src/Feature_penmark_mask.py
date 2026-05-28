@@ -84,19 +84,19 @@ def generate_pen_mask(img, lesion_mask):
     _, lm = cv2.threshold(lesion_mask, 127, 255, cv2.THRESH_BINARY)
 
     clean_img = remove_lesion(img, lm)
-    gm        = skin_gray_mean(img, lm)
+    gm= skin_gray_mean(img, lm)
 
     if gm < DARK_SKIN_THRESHOLD:
         pen = detect_pen_dark_skin(clean_img, lm)
     else:
         pen = detect_pen_light_skin(clean_img, lm)
 
-    k3 = np.ones((3, 3), np.uint8)
-    k5 = np.ones((5, 5), np.uint8)
-    pen = cv2.morphologyEx(pen, cv2.MORPH_OPEN,  k3)
-    pen = cv2.morphologyEx(pen, cv2.MORPH_CLOSE, k5)
-    pen = directional_dilation(pen)
-    pen = cv2.morphologyEx(pen, cv2.MORPH_CLOSE, k5)
+    k3= np.ones((3, 3), np.uint8)
+    k5= np.ones((5, 5), np.uint8)
+    pen= cv2.morphologyEx(pen, cv2.MORPH_OPEN,  k3)
+    pen= cv2.morphologyEx(pen, cv2.MORPH_CLOSE, k5)
+    pen= directional_dilation(pen)
+    pen= cv2.morphologyEx(pen, cv2.MORPH_CLOSE, k5)
     pen[lm == 255] = 0
 
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(pen)
@@ -111,10 +111,10 @@ def run(img_dir=IMG_DIR, mask_dir=MASK_DIR,
         annotations_csv=ANNOTATIONS_CSV, output_dir=IMGS_CLEAN_DIR):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    df       = pd.read_csv(annotations_csv)
-    pen_cols = [c for c in ["pen_1", "pen_2", "pen_3", "pen_4"] if c in df.columns]
-    has_pen  = df[pen_cols].eq(1).sum(axis=1) >= 2
-    pen_ids  = set(df[has_pen]["img_id"].str.replace(".png", "", regex=False).tolist())
+    df= pd.read_csv(annotations_csv)
+    pen_cols= [c for c in ["pen_1", "pen_2", "pen_3", "pen_4"] if c in df.columns]
+    has_pen= df[pen_cols].eq(1).sum(axis=1) >= 2
+    pen_ids= set(df[has_pen]["img_id"].str.replace(".png", "", regex=False).tolist())
 
     print(f"Images with pen marks: {len(pen_ids)}")
 
@@ -122,8 +122,8 @@ def run(img_dir=IMG_DIR, mask_dir=MASK_DIR,
     blocklist = load_masks_blocklist()
     print(f"Blocklist loaded:      {len(blocklist)} images to skip")
 
-    valid_ext   = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
-    all_images  = [f for f in sorted(Path(img_dir).iterdir())
+    valid_ext= {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
+    all_images= [f for f in sorted(Path(img_dir).iterdir())
                    if f.suffix.lower() in valid_ext]
 
     print(f"Total images found:    {len(all_images)}")
@@ -133,8 +133,8 @@ def run(img_dir=IMG_DIR, mask_dir=MASK_DIR,
     for img_path in all_images:
         if img_path.stem in blocklist:
             continue
-        stem     = img_path.stem
-        out_path = output_dir / img_path.name
+        stem= img_path.stem
+        out_path= output_dir / img_path.name
 
         if stem not in pen_ids:
             import shutil

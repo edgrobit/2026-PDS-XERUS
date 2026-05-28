@@ -1,26 +1,3 @@
-"""
-model_decision_tree.py — Decision Tree classifier
-==================================================
-Decision Trees split data on feature thresholds chosen to maximise
-information gain. They handle both continuous (ITA) and categorical-like
-features well and produce interpretable split rules.
-
-Three feature sets compared:
-    A_Baseline  — Shape only
-    B_PlusColor — Shape + raw color variance
-    C_PlusITA   — Shape + color + ITA
-
-Outputs:
-    results/models/dt_model_<name>.pkl
-    results/predictions/dt_predictions_<name>.csv
-    results/figures/dt_confusion_matrices.png
-    results/figures/dt_depth_search.png
-    results/figures/dt_depth_cv_<scenario>.png
-    results/figures/dt_feature_importance.png
-    results/figures/dt_comparison.png
-    results/reports/dt_report.txt
-"""
-
 import sys
 import pickle
 import numpy as np
@@ -39,27 +16,25 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
-# ── Configuration ─────────────────────────────────────────────────────────────
+
 FEATURES_CSV = Path("data/features.csv")
 
 MALIGNANT = {"BCC", "SCC", "MEL"}
 
 TEST_SIZE = 0.2
-RANDOM_STATE = 42
+RANDOM_STATE= 42
 
-MAX_DEPTH_TO_TEST = 20
-MIN_SAMPLES_LEAF = 20
+MAX_DEPTH_TO_TEST= 20
+MIN_SAMPLES_LEAF= 20
 
 FEATURE_SETS = {
     "A_Baseline": [
-        # Shape only
         "asymmetry_score",
         "compactness",
         "lesion_percentage",
     ],
 
     "B_PlusColor": [
-        # Shape + color heterogeneity
         "asymmetry_score",
         "compactness",
         "lesion_percentage",
@@ -72,7 +47,6 @@ FEATURE_SETS = {
     ],
 
     "C_PlusITA": [
-        # Shape + color heterogeneity + ITA
         "asymmetry_score",
         "compactness",
         "lesion_percentage",
@@ -94,16 +68,8 @@ for d in [
 ]:
     Path(d).mkdir(parents=True, exist_ok=True)
 
-
-# ── New function: save one depth CV plot per scenario ─────────────────────────
-
 def save_depth_cv_plot(model_name, label, depths, mean_scores, std_scores, best_depth):
-    """
-    Saves a cross-validation plot for tree depth selection.
 
-    The plot shows the mean ROC-AUC for each max_depth, with error bars
-    representing ±1 standard deviation across CV folds.
-    """
     output_path = Path(f"results/figures/dt_depth_cv_{model_name}.png")
 
     plt.figure(figsize=(8, 5))
@@ -137,7 +103,6 @@ def save_depth_cv_plot(model_name, label, depths, mean_scores, std_scores, best_
     print(f"    Saved depth CV plot: {output_path}")
 
 
-# ── Main model function ───────────────────────────────────────────────────────
 
 def run(features_csv=FEATURES_CSV):
     print("\n" + "=" * 50)
@@ -188,10 +153,6 @@ def run(features_csv=FEATURES_CSV):
             random_state=RANDOM_STATE,
             stratify=y,
         )
-
-        # ============================================================
-        # DEPTH SEARCH WITH CROSS-VALIDATION
-        # ============================================================
         depths = list(range(1, MAX_DEPTH_TO_TEST + 1))
 
         depth_scores = []
@@ -218,7 +179,6 @@ def run(features_csv=FEATURES_CSV):
         best_depth, best_cv = max(depth_scores, key=lambda x: x[1])
         best_cv_std = depth_stds[depths.index(best_depth)]
 
-        # Save one graph for this specific scenario
         save_depth_cv_plot(
             model_name=model_name,
             label=model_name,
@@ -228,9 +188,6 @@ def run(features_csv=FEATURES_CSV):
             best_depth=best_depth,
         )
 
-        # ============================================================
-        # FINAL MODEL WITH BEST DEPTH
-        # ============================================================
         dt = DecisionTreeClassifier(
             max_depth=best_depth,
             min_samples_leaf=MIN_SAMPLES_LEAF,
@@ -278,7 +235,6 @@ def run(features_csv=FEATURES_CSV):
             "importances": imp_df,
         }
 
-        # Save predictions
         pred_df = df_model.iloc[idx_test].copy().reset_index(drop=True)
         pred_df["predicted_label"] = y_pred
         pred_df["predicted_prob_mal"] = y_prob.round(4)
@@ -289,7 +245,6 @@ def run(features_csv=FEATURES_CSV):
             index=False,
         )
 
-        # Save model
         with open(f"results/models/dt_model_{model_name}.pkl", "wb") as f:
             pickle.dump(
                 {
@@ -300,7 +255,6 @@ def run(features_csv=FEATURES_CSV):
                 f,
             )
 
-    # ── Comparison summary ────────────────────────────────────────────────────
     names = list(results.keys())
 
     labels = {
@@ -337,10 +291,6 @@ def run(features_csv=FEATURES_CSV):
             f"AUC={r['roc_auc']:.3f}"
             f"{d_acc}{d_auc}"
         )
-
-    # ── Figures ───────────────────────────────────────────────────────────────
-
-    # Confusion matrices
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
     for ax, name in zip(axes, names):
@@ -368,7 +318,6 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/dt_confusion_matrices.png", dpi=150)
     plt.close()
 
-    # Combined depth search curves
     plt.figure(figsize=(10, 4))
 
     for name, color in zip(names, colors):
@@ -397,7 +346,7 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/dt_depth_search.png", dpi=150)
     plt.close()
 
-    # Feature importance for full model
+
     best_imp = results["C_PlusITA"]["importances"]
 
     plt.figure(figsize=(8, 5))
@@ -413,7 +362,6 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/dt_feature_importance.png", dpi=150)
     plt.close()
 
-    # Bar chart comparison
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
     accs = [results[n]["accuracy"] for n in names]
@@ -463,7 +411,7 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/dt_comparison.png", dpi=150)
     plt.close()
 
-    # ── Save report ───────────────────────────────────────────────────────────
+
     with open("results/reports/dt_report.txt", "w") as f:
         f.write("Decision Tree Report\n" + "=" * 50 + "\n")
         f.write("Research question: Does skin color influence malignancy?\n\n")

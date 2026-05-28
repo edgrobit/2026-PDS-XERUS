@@ -13,7 +13,7 @@ MASK_DIR= PATHS["mask_dir"]
 
 def extract_border_features(mask_bin):
     """Extract shape and border features from a binary lesion mask."""
-    cleaned = preprocess_mask(mask_bin)
+    cleaned= preprocess_mask(mask_bin)
     lesion, region = get_main_lesion(cleaned)
     if lesion is None:
         return None
@@ -23,10 +23,10 @@ def extract_border_features(mask_bin):
     total_pixels= lesion.shape[0] * lesion.shape[1]
 
     return {
-        "total_pixels":      total_pixels,
-        "area":              area,
+        "total_pixels": total_pixels,
+        "area": area,
         "lesion_percentage": area / total_pixels if total_pixels > 0 else np.nan,
-        "compactness":       (perimeter ** 2) / (4 * np.pi * area) if area > 0 else np.nan,
+        "compactness": (perimeter ** 2) / (4 * np.pi * area) if area > 0 else np.nan,
     }
 
 

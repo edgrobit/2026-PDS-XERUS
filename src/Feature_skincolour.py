@@ -10,14 +10,14 @@ from scipy.stats import circvar
 from utils import (find_project_paths, load_image, load_mask,
                    find_mask_for_image, VALID_EXTENSIONS, load_masks_blocklist)
 
-PATHS          = find_project_paths()
-IMG_DIR        = PATHS["img_dir"]
-IMGS_CLEAN_DIR = PATHS["project_root"] / "data" / "imgs_clean"
-MASK_DIR       = PATHS["mask_dir"]
+PATHS= find_project_paths()
+IMG_DIR= PATHS["img_dir"]
+IMGS_CLEAN_DIR= PATHS["project_root"] / "data" / "imgs_clean"
+MASK_DIR= PATHS["mask_dir"]
 
-MAX_SIZE   = 512
-N_SEGMENTS = 50
-ITA_THRESHOLDS = [55.0, 41.0, 28.0, 10.0, -30.0]
+MAX_SIZE= 512
+N_SEGMENTS= 50
+ITA_THRESHOLDS= [55.0, 41.0, 28.0, 10.0, -30.0]
 
 
 def ita_to_fst(ita):
@@ -28,59 +28,59 @@ def ita_to_fst(ita):
 
 
 def compute_ita(image, segments):
-    lab      = rgb2lab(image)
-    seg_ids  = np.unique(segments)
-    n        = len(seg_ids)
-    lut      = np.zeros(segments.max() + 1, dtype=np.intp)
+    lab= rgb2lab(image)
+    seg_ids= np.unique(segments)
+    n= len(seg_ids)
+    lut= np.zeros(segments.max() + 1, dtype=np.intp)
     lut[seg_ids] = np.arange(n)
-    flat_idx = lut[segments.ravel()]
-    counts   = np.bincount(flat_idx, minlength=n).astype(np.float64)
-    lab_flat = lab.reshape(-1, 3)
-    lab_sum  = np.zeros((n, 3))
+    flat_idx= lut[segments.ravel()]
+    counts= np.bincount(flat_idx, minlength=n).astype(np.float64)
+    lab_flat= lab.reshape(-1, 3)
+    lab_sum= np.zeros((n, 3))
     np.add.at(lab_sum, flat_idx, lab_flat)
-    lab_means = lab_sum / counts[:, None]
+    lab_means= lab_sum / counts[:, None]
 
     L, b = lab_means[:, 0], lab_means[:, 2]
     skin_mask = (L >= 30) & (L <= 90)
     if skin_mask.sum() == 0:
         skin_mask = np.ones(n, dtype=bool)
 
-    b_safe   = np.where(np.abs(b[skin_mask]) < 1e-6, 1e-6, b[skin_mask])
-    ita_vals = np.degrees(np.arctan((L[skin_mask] - 50) / b_safe))
-    ita_mean = float(np.mean(ita_vals))
+    b_safe= np.where(np.abs(b[skin_mask]) < 1e-6, 1e-6, b[skin_mask])
+    ita_vals= np.degrees(np.arctan((L[skin_mask] - 50) / b_safe))
+    ita_mean= float(np.mean(ita_vals))
     return round(ita_mean, 4), ita_to_fst(ita_mean)
 
 
 def get_segment_means(image, hsv, segments):
-    seg_ids  = np.unique(segments)
-    n        = len(seg_ids)
-    lut      = np.zeros(segments.max() + 1, dtype=np.intp)
-    lut[seg_ids] = np.arange(n)
-    flat_idx = lut[segments.ravel()]
-    counts   = np.bincount(flat_idx, minlength=n).astype(np.float64)
+    seg_ids= np.unique(segments)
+    n= len(seg_ids)
+    lut= np.zeros(segments.max() + 1, dtype=np.intp)
+    lut[seg_ids]= np.arange(n)
+    flat_idx= lut[segments.ravel()]
+    counts= np.bincount(flat_idx, minlength=n).astype(np.float64)
 
-    rgb_flat  = image.reshape(-1, 3)
-    rgb_sum   = np.zeros((n, 3))
+    rgb_flat= image.reshape(-1, 3)
+    rgb_sum= np.zeros((n, 3))
     np.add.at(rgb_sum, flat_idx, rgb_flat)
     rgb_means = rgb_sum / counts[:, None]
 
-    hsv_flat = hsv.reshape(-1, 3)
-    sv_sum   = np.zeros((n, 2))
+    hsv_flat= hsv.reshape(-1, 3)
+    sv_sum= np.zeros((n, 2))
     np.add.at(sv_sum, flat_idx, hsv_flat[:, 1:])
     sv_means = sv_sum / counts[:, None]
 
-    angles  = hsv_flat[:, 0] * 2 * np.pi
-    sin_sum = np.zeros(n)
-    cos_sum = np.zeros(n)
+    angles= hsv_flat[:, 0] * 2 * np.pi
+    sin_sum= np.zeros(n)
+    cos_sum= np.zeros(n)
     np.add.at(sin_sum, flat_idx, np.sin(angles))
     np.add.at(cos_sum, flat_idx, np.cos(angles))
-    h_means = (np.arctan2(sin_sum/counts, cos_sum/counts) % (2*np.pi)) / (2*np.pi)
+    h_means= (np.arctan2(sin_sum/counts, cos_sum/counts) % (2*np.pi)) / (2*np.pi)
 
     return rgb_means, np.column_stack([h_means, sv_means])
 
 
 def extract_color_features(image):
-    hsv      = rgb2hsv(image)
+    hsv= rgb2hsv(image)
     segments = slic(image, n_segments=N_SEGMENTS, compactness=10, start_label=1)
     rgb_means, hsv_means = get_segment_means(image, hsv, segments)
 
@@ -94,13 +94,13 @@ def extract_color_features(image):
     ita_mean, fst_predicted = compute_ita(image, segments)
 
     return {
-        "rgb_var_r":     rgb_var[0],
-        "rgb_var_g":     rgb_var[1],
-        "rgb_var_b":     rgb_var[2],
-        "hsv_var_h":     hsv_var[0],
-        "hsv_var_s":     hsv_var[1],
-        "hsv_var_v":     hsv_var[2],
-        "ita_mean":      ita_mean,
+        "rgb_var_r": rgb_var[0],
+        "rgb_var_g": rgb_var[1],
+        "rgb_var_b": rgb_var[2],
+        "hsv_var_h": hsv_var[0],
+        "hsv_var_s": hsv_var[1],
+        "hsv_var_v": hsv_var[2],
+        "ita_mean": ita_mean,
         "fst_predicted": fst_predicted,
     }
 

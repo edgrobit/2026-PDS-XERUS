@@ -1,32 +1,8 @@
-<<<<<<< HEAD
 from sklearn.model_selection import StratifiedKFold
-=======
-"""
-model_KNN.py — KNN classifier
-==============================
-KNN classifies by finding the k nearest neighbours in feature space
-and taking a majority vote. It is distance-based, so StandardScaler
-is essential — without it, large-valued features (ITA ~20) would
-dominate small-valued ones (asymmetry ~0.3).
-
-Three feature sets are compared to directly answer the research question:
-    A — Shape only (baseline, no color)
-    B — Shape + raw color variance 
-    C — Shape + color + ITA (full model)
-
-Outputs:
-    results/models/knn_model_<name>.pkl
-    results/predictions/knn_predictions_<name>.csv
-    results/figures/knn_*.png
-    results/reports/knn_report.txt
-"""
-
->>>>>>> 835eabfee779a37913955ef66104abdc14626fbb
 import pickle
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from pathlib import Path
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -126,22 +102,22 @@ def run(features_csv=FEATURES_CSV):
         print(f"    k={best_k}  acc={accuracy:.3f}  AUC={roc_auc:.3f}")
 
         results[model_name] = {
-            "features":  available,
-            "best_k":    best_k,
-            "best_cv":   best_cv,
-            "accuracy":  accuracy,
-            "roc_auc":   roc_auc,
-            "report":    report,
-            "y_pred":    y_pred,
-            "y_test":    y_test,
+            "features":available,
+            "best_k":best_k,
+            "best_cv":best_cv,
+            "accuracy": accuracy,
+            "roc_auc":roc_auc,
+            "report":report,
+            "y_pred":y_pred,
+            "y_test":y_test,
             "k_scores":  k_scores,
         }
 
         # Save predictions and model per feature set
         pred_df = df_model.iloc[idx_test].copy().reset_index(drop=True)
-        pred_df["predicted_label"]    = y_pred
+        pred_df["predicted_label"]= y_pred
         pred_df["predicted_prob_mal"] = y_prob.round(4)
-        pred_df["correct"]            = (y_pred == y_test)
+        pred_df["correct"]= (y_pred == y_test)
         pred_df.to_csv(f"results/predictions/knn_predictions_{model_name}.csv",
                        index=False)
 
@@ -153,9 +129,9 @@ def run(features_csv=FEATURES_CSV):
     print("COMPARISON SUMMARY")
     print("="*50)
     labels = {
-        "A_Baseline":  "A: Shape only",
+        "A_Baseline": "A: Shape only",
         "B_PlusColor": "B: + Color variance",
-        "C_PlusITA":   "C: + ITA (skin tone)",
+        "C_PlusITA": "C: + ITA (skin tone)",
     }
     base_acc = results["A_Baseline"]["accuracy"]
     base_auc = results["A_Baseline"]["roc_auc"]
@@ -205,7 +181,6 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/knn_confusion_matrices.png", dpi=150)
     plt.close()
 
-    # ── Save report ───────────────────────────────────────────────────────────
     with open("results/reports/knn_report.txt", "w") as f:
         f.write("KNN Classification Report\n" + "="*50 + "\n")
         f.write("Research question: Does skin color influence malignancy?\n\n")

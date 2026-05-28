@@ -6,11 +6,10 @@ import numpy as np
 import pandas as pd
 from math import floor, ceil
 from skimage.transform import rotate
-from utils import (find_project_paths, load_mask, VALID_EXTENSIONS,
-                   load_masks_blocklist)
+from utils import (find_project_paths, load_mask, VALID_EXTENSIONS,load_masks_blocklist)
 
-PATHS    = find_project_paths()
-MASK_DIR = PATHS["mask_dir"]
+PATHS= find_project_paths()
+MASK_DIR= PATHS["mask_dir"]
 N_ROTATIONS = 8
 
 

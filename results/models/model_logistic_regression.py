@@ -1,30 +1,3 @@
-"""
-model_logistic_regression.py — Logistic Regression classifier
-==============================================================
-Logistic Regression estimates the probability of malignancy as a weighted
-sum of features passed through a sigmoid function. It assumes a linear
-relationship between features and log-odds of malignancy.
-
-Key advantage: the coefficient for each feature directly shows its direction
-and strength — positive coefficient = feature increases malignancy probability,
-negative = decreases it. This makes LR uniquely interpretable for your
-research question: the ITA coefficient tells you directly whether lighter
-skin (higher ITA) is associated with higher or lower malignancy likelihood.
-
-Three feature sets compared (same as KNN and DT for cross-model comparison):
-    A_Baseline  — Shape only
-    B_PlusColor — Shape + color variance
-    C_PlusITA  — Shape + color + ITA (full model)
-
-Outputs:
-    results/models/lr_model_<name>.pkl
-    results/predictions/lr_predictions_<name>.csv
-    results/figures/lr_confusion_matrices.png
-    results/figures/lr_coefficients.png
-    results/figures/lr_comparison.png
-    results/reports/lr_report.txt
-"""
-
 import sys
 import pickle
 import numpy as np
@@ -42,26 +15,23 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay, roc_auc_score,
 )
 
-# ── Configuration ─────────────────────────────────────────────────────────────
+
 FEATURES_CSV = Path("data/features.csv")
-MALIGNANT    = {"BCC", "SCC", "MEL"}
-TEST_SIZE    = 0.2
+MALIGNANT= {"BCC", "SCC", "MEL"}
+TEST_SIZE= 0.2
 RANDOM_STATE = 42
 
 FEATURE_SETS = {
     "A_Baseline": [
-        # Shape only — no color information
         "asymmetry_score", "compactness", "lesion_percentage",
     ],
     "B_PlusColor": [
-        # Shape + color heterogeneity (how varied the color is across the lesion)
         "asymmetry_score", "compactness", "lesion_percentage",
         "rgb_var_r", "rgb_var_g", "rgb_var_b",
         "hsv_var_h", "hsv_var_s", "hsv_var_v",
     ],
     "C_PlusITA": [
-        # Shape + color heterogeneity + ITA (continuous skin tone)
-        # This phase directly addresses the research question
+
         "asymmetry_score", "compactness", "lesion_percentage",
         "rgb_var_r", "rgb_var_g", "rgb_var_b",
         "hsv_var_h", "hsv_var_s", "hsv_var_v",
@@ -90,8 +60,8 @@ def run(features_csv=FEATURES_CSV):
     for model_name, feature_cols in FEATURE_SETS.items():
         print(f"\n  --- {model_name} ---")
 
-        available = [c for c in feature_cols if c in df.columns]
-        missing   = [c for c in feature_cols if c not in df.columns]
+        available= [c for c in feature_cols if c in df.columns]
+        missing= [c for c in feature_cols if c not in df.columns]
         if missing:
             print(f"    WARNING: skipping missing: {missing}")
 
@@ -106,7 +76,6 @@ def run(features_csv=FEATURES_CSV):
             test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
         )
 
-        # Pipeline: scale then fit — prevents data leakage inside CV folds
         model = Pipeline([
             ("scaler",   StandardScaler()),
             ("logistic", LogisticRegression(max_iter=1000,
@@ -137,29 +106,26 @@ def run(features_csv=FEATURES_CSV):
               f"CV AUC={cv_scores.mean():.3f} ± {cv_scores.std():.3f}")
 
         results[model_name] = {
-            "features":  available,
-            "cv_auc":    cv_scores.mean(),
-            "cv_std":    cv_scores.std(),
-            "accuracy":  accuracy,
-            "roc_auc":   roc_auc,
-            "report":    report,
-            "y_pred":    y_pred,
-            "y_test":    y_test,
-            "coefs":     coef_df,
+            "features":available,
+            "cv_auc": cv_scores.mean(),
+            "cv_std": cv_scores.std(),
+            "accuracy": accuracy,
+            "roc_auc": roc_auc,
+            "report": report,
+            "y_pred": y_pred,
+            "y_test": y_test,
+            "coefs": coef_df,
         }
 
-        # Save predictions and model
         pred_df = df_model.iloc[idx_test].copy().reset_index(drop=True)
-        pred_df["predicted_label"]    = y_pred
+        pred_df["predicted_label"]= y_pred
         pred_df["predicted_prob_mal"] = y_prob.round(4)
-        pred_df["correct"]            = (y_pred == y_test)
-        pred_df.to_csv(f"results/predictions/lr_predictions_{model_name}.csv",
-                       index=False)
+        pred_df["correct"]= (y_pred == y_test)
+        pred_df.to_csv(f"results/predictions/lr_predictions_{model_name}.csv",index=False)
 
         with open(f"results/models/lr_model_{model_name}.pkl", "wb") as f:
             pickle.dump({"model": model, "features": available}, f)
 
-    # ── Comparison summary ────────────────────────────────────────────────────
     names    = list(results.keys())
     labels   = {"A_Baseline":  "A: Shape only",
                  "B_PlusColor": "B: + Color variance",
@@ -176,10 +142,6 @@ def run(features_csv=FEATURES_CSV):
         d_auc = f"  Δauc={r['roc_auc']-base_auc:+.3f}"  if name != "A_Baseline" else ""
         print(f"  {labels[name]:<22} acc={r['accuracy']:.3f}  "
               f"AUC={r['roc_auc']:.3f}{d_acc}{d_auc}")
-
-    # ── Figures ───────────────────────────────────────────────────────────────
-
-    # Confusion matrices
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     for ax, (name, color) in zip(axes, zip(names, colors)):
         cm = confusion_matrix(results[name]["y_test"], results[name]["y_pred"])
@@ -191,7 +153,6 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/lr_confusion_matrices.png", dpi=150)
     plt.close()
 
-    # Coefficients for full model (C_PlusITA) — most interpretable figure
     coef_df = results["C_PlusITA"]["coefs"]
     colors_coef = ["#DD8452" if v > 0 else "#4C72B0"
                    for v in coef_df["coefficient"]]
@@ -205,8 +166,6 @@ def run(features_csv=FEATURES_CSV):
     plt.tight_layout()
     plt.savefig("results/figures/lr_coefficients.png", dpi=150)
     plt.close()
-
-    # Bar chart comparison
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     accs = [results[n]["accuracy"] for n in names]
     aucs = [results[n]["roc_auc"]  for n in names]
@@ -231,7 +190,6 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/lr_comparison.png", dpi=150)
     plt.close()
 
-    # ── Save report ───────────────────────────────────────────────────────────
     with open("results/reports/lr_report.txt", "w") as f:
         f.write("Logistic Regression Report\n" + "="*50 + "\n")
         f.write("Research question: Does skin color influence malignancy?\n\n")
