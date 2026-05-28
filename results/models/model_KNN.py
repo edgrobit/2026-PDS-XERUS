@@ -1,4 +1,27 @@
+<<<<<<< HEAD
 from sklearn.model_selection import StratifiedKFold
+=======
+"""
+model_KNN.py — KNN classifier
+==============================
+KNN classifies by finding the k nearest neighbours in feature space
+and taking a majority vote. It is distance-based, so StandardScaler
+is essential — without it, large-valued features (ITA ~20) would
+dominate small-valued ones (asymmetry ~0.3).
+
+Three feature sets are compared to directly answer the research question:
+    A — Shape only (baseline, no color)
+    B — Shape + raw color variance 
+    C — Shape + color + ITA (full model)
+
+Outputs:
+    results/models/knn_model_<name>.pkl
+    results/predictions/knn_predictions_<name>.csv
+    results/figures/knn_*.png
+    results/reports/knn_report.txt
+"""
+
+>>>>>>> 835eabfee779a37913955ef66104abdc14626fbb
 import pickle
 import numpy as np
 import pandas as pd
