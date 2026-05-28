@@ -1,23 +1,4 @@
-"""
-model_KNN.py — KNN classifier
-==============================
-KNN classifies by finding the k nearest neighbours in feature space
-and taking a majority vote. It is distance-based, so StandardScaler
-is essential — without it, large-valued features (ITA ~20) would
-dominate small-valued ones (asymmetry ~0.3).
-
-Three feature sets are compared to directly answer the research question:
-    A — Shape only (baseline, no color)
-    B — Shape + raw color variance + ITA
-    C — Shape + color + FST (full model)
-
-Outputs:
-    results/models/knn_model_<name>.pkl
-    results/predictions/knn_predictions_<name>.csv
-    results/figures/knn_*.png
-    results/reports/knn_report.txt
-"""
-
+from sklearn.model_selection import StratifiedKFold
 import pickle
 import numpy as np
 import pandas as pd
@@ -32,27 +13,24 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay, roc_auc_score,
 )
 
-# ── Configuration ─────────────────────────────────────────────────────────────
 FEATURES_CSV = Path("data/features.csv")
 MALIGNANT    = {"BCC", "SCC", "MEL"}
 TEST_SIZE    = 0.2
 RANDOM_STATE = 42
 
-# Three feature sets — progressive addition to isolate skin color contribution
 FEATURE_SETS = {
     "A_Baseline": [
-        # Shape only — no color information
+
         "asymmetry_score", "compactness", "lesion_percentage",
     ],
     "B_PlusColor": [
-        # Shape + color heterogeneity (how varied the color is across the lesion)
+
         "asymmetry_score", "compactness", "lesion_percentage",
         "rgb_var_r", "rgb_var_g", "rgb_var_b",
         "hsv_var_h", "hsv_var_s", "hsv_var_v",
     ],
     "C_PlusITA": [
-        # Shape + color heterogeneity + ITA (continuous skin tone)
-        # This phase directly addresses the research question
+
         "asymmetry_score", "compactness", "lesion_percentage",
         "rgb_var_r", "rgb_var_g", "rgb_var_b",
         "hsv_var_h", "hsv_var_s", "hsv_var_v",
@@ -101,12 +79,13 @@ def run(features_csv=FEATURES_CSV):
         X_train = scaler.fit_transform(X_train)
         X_test  = scaler.transform(X_test)
 
-        # Find best k on training set only
+        cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+
         k_scores = []
         for k in range(1, 21):
             score = cross_val_score(
                 KNeighborsClassifier(n_neighbors=k, metric="euclidean"),
-                X_train, y_train, cv=5, scoring="roc_auc"
+                X_train, y_train, cv=cv, scoring="roc_auc"
             ).mean()
             k_scores.append((k, score))
         best_k, best_cv = max(k_scores, key=lambda x: x[1])
@@ -147,7 +126,6 @@ def run(features_csv=FEATURES_CSV):
             pickle.dump({"model": knn, "scaler": scaler,
                          "features": available, "k": best_k}, f)
 
-    # ── Comparison summary ────────────────────────────────────────────────────
     print("\n" + "="*50)
     print("COMPARISON SUMMARY")
     print("="*50)
@@ -165,12 +143,11 @@ def run(features_csv=FEATURES_CSV):
         print(f"  {labels[name]:<20} acc={r['accuracy']:.3f}  "
               f"AUC={r['roc_auc']:.3f}{d_acc}{d_auc}")
 
-    # ── Figures ───────────────────────────────────────────────────────────────
     names  = list(results.keys())
     colors = ["#95a5a6", "#4C72B0", "#DD8452"]
     xlabels = [labels[n] for n in names]
 
-    # Bar chart
+
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     accs = [results[n]["accuracy"] for n in names]
     aucs = [results[n]["roc_auc"]  for n in names]
@@ -194,7 +171,6 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/knn_comparison.png", dpi=150)
     plt.close()
 
-    # Confusion matrices
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     for ax, (name, color) in zip(axes, zip(names, colors)):
         cm = confusion_matrix(results[name]["y_test"], results[name]["y_pred"])

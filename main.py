@@ -3,20 +3,19 @@ import argparse
 import pandas as pd
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-# ── Feature scripts ───────────────────────────────────────────────────────────
 from src.Feature_hair_removal         import run_dataset_pipeline as run_hair_removal
 from src.Feature_penmark_mask import run as run_pen_removal
 from src.Feature_asymmetry    import run as run_asymmetry
 from src.Feature_borders      import run as run_borders
 from src.Feature_skincolour   import run as run_skincolour
-
-# ── Model scripts ─────────────────────────────────────────────────────────────
 from results.models.model_KNN                 import run as run_knn
 from results.models.model_decision_tree       import run as run_dt
 from results.models.model_logistic_regression import run as run_lr
+import random
+import numpy as np
+random.seed(42)
+np.random.seed(42)
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
 DATA_DIR        = Path("data")
 IMGS_DIR        = DATA_DIR / "imgs"
 IMGS_HAIRLESS   = DATA_DIR / "imgs_hairless"
@@ -29,7 +28,6 @@ OUTPUT_CSV      = DATA_DIR / "features.csv"
 MALIGNANT = {"BCC", "SCC", "MEL"}
 
 
-# ── Step 0a: Hair removal ─────────────────────────────────────────────────────
 
 def remove_hair():
     print("\n" + "="*60)
@@ -41,8 +39,6 @@ def remove_hair():
         output_dir = str(IMGS_HAIRLESS),
     )
 
-
-# ── Step 0b: Pen mark removal ─────────────────────────────────────────────────
 
 def remove_pen_marks():
     print("\n" + "="*60)
@@ -65,7 +61,6 @@ def remove_pen_marks():
     )
 
 
-# ── Step 1: Feature extraction and build master CSV ───────────────────────────
 
 def extract_features():
     print("\n" + "="*60)
@@ -84,7 +79,7 @@ def extract_features():
     color = run_skincolour()
     color["stem"] = color["image_name"].str.replace(".png", "", regex=False)
 
-    # Merge all features together on stem
+
     df = bord.merge(
         asym[["stem", "asymmetry_score", "rotations_used"]],
         on="stem", how="left").merge(
@@ -93,7 +88,7 @@ def extract_features():
                "ita_mean", "fst_predicted"]],
         on="stem", how="left")
 
-    # Merge metadata for diagnostic labels
+
     meta = pd.read_csv(METADATA_CSV)
     meta["stem"] = meta["img_id"].str.replace(".png", "", regex=False)
     df = df.merge(
@@ -114,8 +109,6 @@ def extract_features():
 
     return df
 
-
-# ── Step 2: Train models ──────────────────────────────────────────────────────
 
 def train_models():
     print("\n" + "="*60)
@@ -143,8 +136,6 @@ def train_models():
     print(f"  {'Logistic Regression (best)':<30} "
           f"{best_lr['accuracy']:>10.3f} {best_lr['roc_auc']:>10.3f}")
 
-
-# ── Entry point ───────────────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(description="Skin lesion pipeline")
