@@ -8,8 +8,8 @@ dominate small-valued ones (asymmetry ~0.3).
 
 Three feature sets are compared to directly answer the research question:
     A — Shape only (baseline, no color)
-    B — Shape + raw color variance + ITA
-    C — Shape + color + FST (full model)
+    B — Shape + raw color variance 
+    C — Shape + color + ITA (full model)
 
 Outputs:
     results/models/knn_model_<name>.pkl

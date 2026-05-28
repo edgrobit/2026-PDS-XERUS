@@ -13,8 +13,8 @@ skin (higher ITA) is associated with higher or lower malignancy likelihood.
 
 Three feature sets compared (same as KNN and DT for cross-model comparison):
     A_Baseline  — Shape only
-    B_PlusColor — Shape + color variance + ITA
-    C_PlusFST   — Shape + color + FST (full model)
+    B_PlusColor — Shape + color variance
+    C_PlusITA  — Shape + color + ITA (full model)
 
 Outputs:
     results/models/lr_model_<name>.pkl
@@ -191,7 +191,7 @@ def run(features_csv=FEATURES_CSV):
     plt.savefig("results/figures/lr_confusion_matrices.png", dpi=150)
     plt.close()
 
-    # Coefficients for full model (C_PlusFST) — most interpretable figure
+    # Coefficients for full model (C_PlusITA) — most interpretable figure
     coef_df = results["C_PlusITA"]["coefs"]
     colors_coef = ["#DD8452" if v > 0 else "#4C72B0"
                    for v in coef_df["coefficient"]]
