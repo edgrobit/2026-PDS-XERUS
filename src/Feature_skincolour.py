@@ -1,19 +1,3 @@
-"""
-feature_skincolour.py — Skin color feature extraction
-======================================================
-Extracts color features from the skin region of each image.
-Reads from data/imgs_clean/ if available (pen marks removed),
-falls back to data/imgs/ otherwise.
-Returns a dataframe — does not save to disk (main.py builds the master CSV).
-
-Output columns:
-    image_name      — filename
-    rgb_var_r/g/b   — RGB variance across superpixels
-    hsv_var_h/s/v   — HSV variance (hue uses circular variance)
-    ita_mean        — Individual Typology Angle (continuous skin tone)
-    fst_predicted   — Fitzpatrick Skin Type 1-6, derived from ITA
-"""
-
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -37,7 +21,6 @@ ITA_THRESHOLDS = [55.0, 41.0, 28.0, 10.0, -30.0]
 
 
 def ita_to_fst(ita):
-    """Convert ITA angle to Fitzpatrick Skin Type 1-6."""
     for fst, threshold in enumerate(ITA_THRESHOLDS, start=1):
         if ita > threshold:
             return fst
@@ -45,12 +28,6 @@ def ita_to_fst(ita):
 
 
 def compute_ita(image, segments):
-    """
-    Compute Individual Typology Angle from superpixels in CIELab space.
-    ITA = arctan((L-50)/b) * (180/pi)
-    Only skin-brightness superpixels (L 30-90) used to exclude lesion.
-    Returns (ita_mean, fst_predicted).
-    """
     lab      = rgb2lab(image)
     seg_ids  = np.unique(segments)
     n        = len(seg_ids)
@@ -75,7 +52,6 @@ def compute_ita(image, segments):
 
 
 def get_segment_means(image, hsv, segments):
-    """Compute mean RGB and HSV per superpixel. Hue uses circular mean."""
     seg_ids  = np.unique(segments)
     n        = len(seg_ids)
     lut      = np.zeros(segments.max() + 1, dtype=np.intp)
@@ -132,8 +108,6 @@ def extract_color_features(image):
 def run():
     blocklist = load_masks_blocklist()
     print(f"  Blocklist loaded: {len(blocklist)} images to skip")
-
-    # Use imgs_clean/ if it exists and has files, otherwise fall back to imgs/
     if IMGS_CLEAN_DIR.exists() and any(IMGS_CLEAN_DIR.iterdir()):
         source_dir = IMGS_CLEAN_DIR
         print(f"  Using cleaned images: {source_dir}")
