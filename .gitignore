@@ -1,0 +1,4 @@
+*.png
+*.txt
+*.jpg
+results/reports/knn_report.txt
