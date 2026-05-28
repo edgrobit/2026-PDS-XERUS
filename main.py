@@ -1,21 +1,3 @@
-"""
-main.py — Full pipeline orchestration
-======================================
-Runs the complete project pipeline in order:
-
-    0a. Hair removal       → data/imgs_hairless/
-    0b. Pen mark removal   → data/imgs_clean/  (reads from imgs_hairless/)
-    1.  Feature extraction → builds data/features.csv
-    2.  Model training     → results/
-
-Usage:
-    python main.py                  # full pipeline
-    python main.py --models-only    # skip to model training (features.csv must exist)
-    python main.py --features-only  # extract features only, skip models
-    python main.py --skip-hair      # skip hair removal, use existing data/imgs_hairless/
-    python main.py --skip-pen       # skip both hair and pen removal, use existing data/imgs_clean/
-"""
-
 import sys
 import argparse
 import pandas as pd
@@ -105,26 +87,23 @@ def extract_features():
     # Merge all features together on stem
     df = bord.merge(
         asym[["stem", "asymmetry_score", "rotations_used"]],
-        on="stem", how="left"
-    ).merge(
+        on="stem", how="left").merge(
         color[["stem", "rgb_var_r", "rgb_var_g", "rgb_var_b",
                "hsv_var_h", "hsv_var_s", "hsv_var_v",
                "ita_mean", "fst_predicted"]],
-        on="stem", how="left"
-    )
+        on="stem", how="left")
 
     # Merge metadata for diagnostic labels
     meta = pd.read_csv(METADATA_CSV)
     meta["stem"] = meta["img_id"].str.replace(".png", "", regex=False)
     df = df.merge(
         meta[["stem", "diagnostic", "fitspatrick"]],
-        on="stem", how="left"
-    )
+        on="stem", how="left")
 
     df["img_id"] = df["stem"]
     df["label"]  = df["diagnostic"].apply(
-        lambda x: 1 if x in MALIGNANT else 0
-    )
+        lambda x: 1 if x in MALIGNANT else 0)
+    
     df = df.drop(columns=["stem"]).sort_values("img_id").reset_index(drop=True)
 
     df.to_csv(OUTPUT_CSV, index=False)

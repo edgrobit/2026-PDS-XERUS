@@ -106,7 +106,7 @@ def run(features_csv=FEATURES_CSV):
         for k in range(1, 21):
             score = cross_val_score(
                 KNeighborsClassifier(n_neighbors=k, metric="euclidean"),
-                X_train, y_train, cv=5, scoring="accuracy"
+                X_train, y_train, cv=5, scoring="roc_auc"
             ).mean()
             k_scores.append((k, score))
         best_k, best_cv = max(k_scores, key=lambda x: x[1])
