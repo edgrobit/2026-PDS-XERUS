@@ -1,7 +1,7 @@
 figures/*
 predictions/*
 reports/*
-
+!reports/report_Xerus.pdf
 models/*
 !models/model_decision_tree.py
 !models/model_KNN.py
